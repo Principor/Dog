@@ -3,14 +3,17 @@ Dog
 One remote controlled
 Follows other robot
 
-Follow
-Turn around/Spin
-Beep
-Produce map of where its been, what it did at each location, distance travelled
+easy
+Follow	//Color Sensor
+Turn around/Spin //none
+Stay //sound sensor, clap to start/stop
+random movement with explore avoid wall? //ultrasonic
+	Beep	//none
+	
+hard
+Fetches	//phone
+Produce map of where its been, what it did at each location, distance travelled //none
 	>Show on computer
-
-Fetches
-Stay
-Roll over
-Tail wagging
-random movement with explore avoid wall?
+	
+not likely
+Tail wagging //none
