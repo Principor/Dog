@@ -17,9 +17,10 @@ public class Dog {
 	final static float WHEEL_DIAMETER = 56;
 	final static float AXLE_LENGTH = 190;
 	final static float ANGULAR_SPEED = 100;
-	final static float SPEED = 70;
+	final static float SPEED = 50;
 	
 	public static void main(String[] args) {
+		
 		
 		EV3UltrasonicSensor us = new EV3UltrasonicSensor(SensorPort.S1);
 		SampleProvider distance = (SampleProvider) us.getDistanceMode();
@@ -36,8 +37,9 @@ public class Dog {
 		Wheel wRight = WheeledChassis.modelWheel(mRight, WHEEL_DIAMETER).offset(AXLE_LENGTH / 2);
 		Chassis chassis = new WheeledChassis(new Wheel[] { wRight, wLeft}, WheeledChassis.TYPE_DIFFERENTIAL);
 		MovePilot pilot = new MovePilot(chassis);
+		pilot.setLinearSpeed(SPEED);
 		
-		Arbitrator ab = new Arbitrator (new Behavior[]{new MoveForward(pilot), new BackUp(pilot, distance)});
+		Arbitrator ab = new Arbitrator(new Behavior[] {new Explorer(distance, pilot), new Follower(distance)});
 		
 		Button.ENTER.waitForPressAndRelease();
 		
@@ -47,5 +49,5 @@ public class Dog {
 //		cs.close();
 //		ss.close();
 	}
-	
 }
+
