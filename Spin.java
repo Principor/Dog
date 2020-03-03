@@ -4,12 +4,14 @@ import lejos.hardware.sensor.NXTColorSensor;
 import lejos.hardware.sensor.SensorMode;
 import lejos.robotics.navigation.MovePilot;
 import lejos.robotics.subsumption.Behavior;
+import java.util.Random;
 
 public class Spin implements Behavior{
 	private MovePilot pilot;
 	private NXTColorSensor col = new NXTColorSensor(SensorPort.S3);
 	private SensorMode color = col.getRedMode();
 	private float[] level = new float[1];
+	Random random;
 	
 	@Override
 	public boolean takeControl(){
@@ -20,7 +22,7 @@ public class Spin implements Behavior{
 	@Override
 	public void action() {
 		LCD.drawString("Do duh spin", 1, 1);
-		pilot.rotate(360);
+		pilot.rotate(360 * (random.nextBoolean() ? -1 : 1));
 	}
 
 	@Override
