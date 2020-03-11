@@ -1,3 +1,4 @@
+import lejos.hardware.Button;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.navigation.MovePilot;
 import lejos.robotics.subsumption.Arbitrator;
@@ -16,7 +17,7 @@ public class Explorer implements Behavior{
 	}
 	
 	public boolean takeControl() {
-		return false;
+		return Button.LEFT.isDown();
 	}
 
 	public void action() {
