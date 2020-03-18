@@ -10,10 +10,10 @@ public class Explorer implements Behavior{
 	SampleProvider distance;
 	MovePilot pilot;
 	
-	public Explorer(SampleProvider distance, MovePilot pilot) {
+	public Explorer(SampleProvider distance, SampleProvider sound,  MovePilot pilot) {
 		this.distance = distance;
 		this.pilot = pilot;
-		ab = new Arbitrator (new Behavior[]{new MoveForward(pilot), new BackUp(pilot, distance)});
+		ab = new Arbitrator (new Behavior[]{new MoveForward(pilot), new BackUp(pilot, distance), new Spin(pilot, sound)});
 	}
 	
 	public boolean takeControl() {

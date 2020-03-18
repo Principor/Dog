@@ -3,13 +3,13 @@ import java.io.IOException;
 import java.net.Socket;
 
 import lejos.hardware.Button;
-import lejos.hardware.Key;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.BaseRegulatedMotor;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
+import lejos.hardware.sensor.NXTSoundSensor;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.chassis.Chassis;
 import lejos.robotics.chassis.Wheel;
@@ -42,7 +42,7 @@ public class Dog {
 	
 	public static void startConnection() {
 		boolean connecting = true;
-		int IPSuffix = 0;
+		int IPSuffix = 3;
 		while(connecting) {
 			LCD.clear();
 			LCD.drawString("Set IP:", 0, 0);
@@ -93,8 +93,11 @@ public class Dog {
 		
 		startConnection();
 		
-		EV3UltrasonicSensor us = new EV3UltrasonicSensor(SensorPort.S1);
+		EV3UltrasonicSensor us = new EV3UltrasonicSensor(SensorPort.S2);
 		SampleProvider distance = (SampleProvider) us.getDistanceMode();
+		
+		NXTSoundSensor ss = new NXTSoundSensor(SensorPort.S1);
+		SampleProvider sound = ss.getDBAMode();
 		
 		BaseRegulatedMotor mLeft = new EV3LargeRegulatedMotor(MotorPort.A);
 		Wheel wLeft = WheeledChassis.modelWheel(mLeft, WHEEL_DIAMETER).offset(-AXLE_LENGTH / 2);
@@ -104,7 +107,7 @@ public class Dog {
 		MovePilot pilot = new MovePilot(chassis);
 		pilot.setLinearSpeed(SPEED);
 		
-		Arbitrator ab = new Arbitrator(new Behavior[] {new Explorer(distance, pilot), new Follower(distance), new Fetcher(mLeft, mRight, in)});
+		Arbitrator ab = new Arbitrator(new Behavior[] {new Explorer(distance, sound, pilot), new Stay(pilot), new Follow(mLeft, mRight, distance), new Fetcher(mLeft, mRight, in, pilot)});
 		LCD.clear();
 		LCD.drawString("Press Enter to start", 0, 0);
 		Button.ENTER.waitForPressAndRelease();
