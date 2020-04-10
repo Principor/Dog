@@ -1,103 +1,117 @@
-import java.io.DataInputStream;
-import java.io.IOException;
-
-import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.BaseRegulatedMotor;
 import lejos.robotics.RegulatedMotor;
 import lejos.robotics.navigation.MovePilot;
 import lejos.robotics.subsumption.Behavior;
+import lejos.utility.Delay;
 
 public class Fetcher implements Behavior {
 
-	BaseRegulatedMotor mLeft, mRight;
-	DataInputStream in;
+	private BaseRegulatedMotor mLeft, mRight;
+	private DirectionTracker tracker;
+	private BehaviourSetTracker behaviourSet;
 	
-	MovePilot pilot;
-	
-    final static int BASE_SPEED = 300;
-	
-	public Fetcher(BaseRegulatedMotor  mLeft, BaseRegulatedMotor mRight, DataInputStream in, MovePilot pilot) {
+	private MovePilot pilot;
+
+	final static int RADIUS = 250;
+
+	public Fetcher(BaseRegulatedMotor mLeft, BaseRegulatedMotor mRight, DirectionTracker tracker, MovePilot pilot, BehaviourSetTracker behaviourSet) {
 		this.mLeft = mLeft;
 		this.mRight = mRight;
-		this.in = in;
+		this.tracker = tracker;
 		this.pilot = pilot;
-	}
-	
-	public boolean takeControl() {
-		return Button.RIGHT.isDown();
+		this.behaviourSet = behaviourSet;
 	}
 
-	public float toFloat(String string) {
-		String newString = "";
-		for (int i = 0; i < string.length(); i += 2)
-		{
-			newString += string.charAt(i);
-		}
-		LCD.drawString(string, 0, 1);
-		LCD.drawString(newString, 0, 2);
-		Button.ENTER.waitForPressAndRelease();
-		return 0;
+	public boolean takeControl() {
+		return behaviourSet.getBehvaiourSet() == BehaviourSet.FETCHING;
 	}
-	
+
 	public void action() {
-		mLeft.synchronizeWith(new RegulatedMotor[]{mRight});
-		boolean finished = false;
+		LCD.clear();
+		LCD.drawString("Fetching", 0, 0);
+		mLeft.setSpeed(10);
+		mRight.setSpeed(10);
+		mLeft.synchronizeWith(new RegulatedMotor[] { mRight });
+
+		// Face Ball
+		int direction;
+		while((direction = getDirection()) != 0) {
+			
+			mLeft.startSynchronization();
+			if (direction < 0) {
+				mLeft.forward();
+				mRight.backward();
+			} else {
+				mLeft.backward();
+				mRight.forward();
+			}
+			mLeft.endSynchronization();
+			
+			while(getDirection() == direction) {
+				//Wait
+			}
+			
+			mLeft.startSynchronization();
+			mLeft.stop();
+			mRight.stop();
+			mLeft.endSynchronization();
+			
+			Delay.msDelay(2000);
+		}
+		
+		// Go to ball
+		mLeft.resetTachoCount();
 		mLeft.setSpeed(100);
 		mRight.setSpeed(100);
-		while(!finished) {
-			try {
-				String input = in.readUTF().replaceAll(";", "");
-				float x, y;
-				if(input.equals("NULL")) {
-					x = 0.5f;
-					y = 0.5f;
-				}else {
-					String[] directions = input.split(",");
-					x = Float.parseFloat(directions[0]);
-					y = Float.parseFloat(directions[1]);
-				}
-				
-				float xthresehold = 0.05f;
-				float ythresehold = 0f;
-				
-				if (x > xthresehold) {
-					mLeft.backward();
-					mRight.forward();
-				}else if(x < -xthresehold) {
-					mLeft.forward();
-					mRight.backward();
-				}else {
-					int distance = 20;
-					mLeft.stop();
-					mRight.stop();
-					LCD.drawString(Float.toString(y), 0, 1);
-					int startTacho = mLeft.getTachoCount();
-					mLeft.forward();
-					mRight.forward();
-					while(y < ythresehold) {
-						//keep moving forward
-					}
-					mLeft.stop();
-					mRight.stop();
-					int tachoDiff = mLeft.getTachoCount() - startTacho;
-					pilot.rotate(-90);
-					pilot.arc(distance, 180);
-					pilot.rotate(90);
-					pilot.travel(distance * 2);
-					mLeft.rotate(tachoDiff);
-					mRight.rotate(tachoDiff);
-				}
-				
-			} catch (IOException e) {
-				mLeft.stop();
-				mRight.stop();
-			}
+		
+		mLeft.startSynchronization();
+		mLeft.forward();
+		mRight.forward();
+		mLeft.endSynchronization();
+		
+		while (tracker.getY() < 0.35) {
+			Delay.msDelay(10);
 		}
+		
+		mLeft.startSynchronization();
+		mLeft.stop();
+		mRight.stop();
+		mLeft.endSynchronization();
+		
+		int tachoDiff = mLeft.getTachoCount();
 
+		// Go around Ball
+		pilot.rotate(-90);
+		pilot.arc(RADIUS, 180);
+		pilot.rotate(90);
+		pilot.travel(RADIUS * 2);
+
+		// Return to start
+		mLeft.startSynchronization();
+		mLeft.rotate(tachoDiff);
+		mRight.rotate(tachoDiff);
+		mLeft.endSynchronization();
+		
+		behaviourSet.returnToPreviousBehaviourSet();
 	}
 
 	public void suppress() {
+		// Do nothing
+	}
+
+	// Since the camera is not centred the centre of the ball must be between the
+	// two straight lines given by the equations:
+	// y=-2.35x-0.359 and y=-3.91x-0.363
+	// These points allow 20mm of variance for the centre of the ball
+	private int getDirection() {
+		if (tracker.getY() > ((tracker.getX() * 2.35) - 0.359)) {
+			if (tracker.getY() < ((tracker.getX() * 3.91) - .363))
+				return 0;
+			else
+				return 1;
+		} else
+			return -1;
 
 	}
 

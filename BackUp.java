@@ -7,21 +7,23 @@ import lejos.robotics.subsumption.Behavior;
 
 public class BackUp implements Behavior{
 
-	MovePilot pilot;
-	SampleProvider distance;
-	float[] level;
-	Random random;
+	private MovePilot pilot;
+	private SampleProvider distance;
+	private float[] level;
+	private Random random;
+	private BehaviourSetTracker behaviourSet;
 	
-	public BackUp(MovePilot pilot, SampleProvider distance) {
+	public BackUp(MovePilot pilot, BehaviourSetTracker behaviourSet, SampleProvider distance) {
 		this.pilot = pilot;
 		this.distance = distance;
 		random = new Random();
 		level = new float[1];
+		this.behaviourSet = behaviourSet;
 	}
 	
 	public boolean takeControl() {
 		distance.fetchSample(level, 0);
-		return level[0] < 0.5;
+		return level[0] < 0.5 && behaviourSet.getBehvaiourSet() == BehaviourSet.EXPLORING;
 	}
 
 	public void action() {
