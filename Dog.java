@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.BaseRegulatedMotor;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -16,6 +17,7 @@ import lejos.robotics.chassis.WheeledChassis;
 import lejos.robotics.navigation.MovePilot;
 import lejos.robotics.subsumption.Arbitrator;
 import lejos.robotics.subsumption.Behavior;
+import lejos.utility.Delay;
 
 public class Dog {
 
@@ -26,10 +28,9 @@ public class Dog {
 	private final static float WHEEL_DIAMETER = 56;
 	private final static float ANGULAR_SPEED = 30;
 	private final static float SPEED = 50;
-	// The wheels do not get enough grip and therefore do not turn enough
-	// To counter this, the movePilot is told the axle length is larger than it
-	// really is, so that it makes the wheels spin more
-	private final static float COEFFICIENT = 1.1f;
+
+	public final static float LEFT_AXLE = -98f;
+	public final static float RIGHT_AXLE = 42f;
 
 	public static void startScreen() {
 		LCD.drawString("Dog v1.0", 0, 0);
@@ -94,17 +95,20 @@ public class Dog {
 		SampleProvider distance = (SampleProvider) us.getDistanceMode();
 
 		BaseRegulatedMotor mLeft = new EV3LargeRegulatedMotor(MotorPort.A);
-		Wheel wLeft = WheeledChassis.modelWheel(mLeft, WHEEL_DIAMETER).offset(-88 * COEFFICIENT);
+		Wheel wLeft = WheeledChassis.modelWheel(mLeft, WHEEL_DIAMETER).offset(LEFT_AXLE);
 		BaseRegulatedMotor mRight = new EV3LargeRegulatedMotor(MotorPort.D);
-		Wheel wRight = WheeledChassis.modelWheel(mRight, WHEEL_DIAMETER).offset(24 * COEFFICIENT);
+		Wheel wRight = WheeledChassis.modelWheel(mRight, WHEEL_DIAMETER).offset(RIGHT_AXLE);
+		
+		mLeft.setAcceleration(600);
+		mRight.setAcceleration(600);
+		
 		Chassis chassis = new WheeledChassis(new Wheel[] { wRight, wLeft }, WheeledChassis.TYPE_DIFFERENTIAL);
 		MovePilot pilot = new MovePilot(chassis);
 		pilot.setLinearSpeed(SPEED);
 		pilot.setAngularSpeed(ANGULAR_SPEED);
-
-		mLeft.setAcceleration(600);
-		mRight.setAcceleration(600);
-
+		pilot.setLinearAcceleration(10);
+		pilot.setAngularAcceleration(10);
+		
 		startScreen();
 		startConnection();
 
@@ -119,8 +123,10 @@ public class Dog {
 		Spin spin = new Spin(pilot, behaviourSet);
 		MoveForward forward = new MoveForward(pilot, behaviourSet);
 		BackUp backUp = new BackUp(pilot, behaviourSet, distance);
+		LowBattery lowBattery = new LowBattery();
+		Beep beep = new Beep(behaviourSet);
 
-		Arbitrator ab = new Arbitrator(new Behavior[] { stay, fetcher, spin, forward, backUp });
+		Arbitrator ab = new Arbitrator(new Behavior[] { stay, fetcher, spin, forward, backUp, beep, lowBattery});
 		ab.go();
 
 		LCD.clear();

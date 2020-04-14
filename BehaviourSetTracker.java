@@ -24,7 +24,10 @@ public class BehaviourSetTracker extends Thread{
 				}
 				if(Button.DOWN.isDown()) {
 					setBehaviourSet(BehaviourSet.STAYING);
-				}				
+				}
+				if(Button.ENTER.isDown()) {
+					setBehaviourSet(BehaviourSet.BEEPING);
+				}
 					
 				Thread.sleep(100);
 			}

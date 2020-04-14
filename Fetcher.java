@@ -13,7 +13,7 @@ public class Fetcher implements Behavior {
 	
 	private MovePilot pilot;
 
-	final static int RADIUS = 250;
+	final static int RADIUS = 300;
 
 	public Fetcher(BaseRegulatedMotor mLeft, BaseRegulatedMotor mRight, DirectionTracker tracker, MovePilot pilot, BehaviourSetTracker behaviourSet) {
 		this.mLeft = mLeft;
@@ -83,8 +83,10 @@ public class Fetcher implements Behavior {
 
 		// Go around Ball
 		pilot.rotate(-90);
-		pilot.arc(RADIUS, 180);
-		pilot.rotate(90);
+		Delay.msDelay(1000);
+		pilot.arc(300, 140);
+		Delay.msDelay(1000);
+		pilot.rotate(110);
 		pilot.travel(RADIUS * 2);
 
 		// Return to start
