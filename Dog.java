@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.net.Socket;
 
 import lejos.hardware.Button;
-import lejos.hardware.Sound;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.BaseRegulatedMotor;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -17,7 +16,6 @@ import lejos.robotics.chassis.WheeledChassis;
 import lejos.robotics.navigation.MovePilot;
 import lejos.robotics.subsumption.Arbitrator;
 import lejos.robotics.subsumption.Behavior;
-import lejos.utility.Delay;
 
 public class Dog {
 
